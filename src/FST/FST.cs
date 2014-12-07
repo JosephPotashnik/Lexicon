@@ -6,42 +6,48 @@ using System.Threading.Tasks;
 
 namespace FiniteStateTransducer
 {
+    public class TransitionData
+    {
+        //the input string that is required to go through this arc.
+        public string Input { get; set; }
+        //the output string that is written when we traverse the arc.
+        public string Output { get; set; }
+        //the source state state index (0,1,... n-1)
+        public int FromState { get; set; }
+        //the target state index.
+        public int ToState { get; set; }
+
+        public TransitionData(string _input, string _output, int _currentState, int _nextState)
+        {
+            Input = _input;
+            Output = _output;
+            FromState = _currentState;
+            ToState = _nextState;
+        }
+    }
+
+    public class FSTData
+    {
+        //a short description of what this FST is accepting (what does it parse)
+        public string Description { get; set; }
+        //number of states in the FST. the states are 0,1,.... n-1.
+        public int NumOfStates { get; set; }
+        //the index of the accepting states.
+        public List<int> acceptingStates { get; set; }
+        //list of arcs
+        public List<TransitionData> Arcs { get; set; }
+
+        public FSTData()
+        {
+
+        }
+    }
     public class FST
     {
-        int MaxStates = 10;
 
-        class TransitionData
-        {
-            string input;
-
-            public string Input
-            {
-                get { return input; }
-                set { input = value; }
-            }
-            string output;
-
-            public string Output
-            {
-                get { return output; }
-                set { output = value; }
-            }
-            int nextState;
-
-            public int NextState
-            {
-                get { return nextState; }
-                set { nextState = value; }
-            }
-
-            public TransitionData(string _input, string _output, int _nextState) 
-            {
-                input = _input;
-                output = _output;
-                nextState = _nextState;
-            }
-        }
-
+        public int NumOfStates { get; set; }
+        public string Description { get; set; }
+        
         class MachineState
         {
             bool acceptingState = false;
@@ -58,7 +64,6 @@ namespace FiniteStateTransducer
                 get { return transitions; }
                 set { transitions = value; }
             }
-            public void SetAcceptingMachineState() { acceptingState = true; }
         }
 
         class SearchState
@@ -70,6 +75,7 @@ namespace FiniteStateTransducer
                 get { return machineState; }
                 set { machineState = value; }
             }
+
             int inputIndex;
 
             public int InputIndex
@@ -98,30 +104,37 @@ namespace FiniteStateTransducer
 
 
         string inputSequence;
-        MachineState[] states;   //assumption: the states correspond to parsing of the input; thus number of states is max number of characters.        
-        public void SetAcceptingState(int state) { states[state].SetAcceptingMachineState(); }
+        MachineState[] states;        
 
-        public FST()
+       
+        public FST(FSTData data)
         {
-            //assumption: the states correspond to parsing of the input; thus number of states is max number of characters.        
-            states = new MachineState[MaxStates];
-            for (int i = 0; i < MaxStates; ++i)
-            {
-                MachineState s = new MachineState();
-                states[i] = s;
-            }
+            Description = data.Description;
+            NumOfStates = data.NumOfStates;
+
+            states = new MachineState[NumOfStates];
+
+            for (int i = 0; i < NumOfStates; ++i)
+                states[i] = new MachineState();
+
+            foreach(int k in data.acceptingStates)
+                states[k].AcceptingState = true;
+
+
+            foreach(TransitionData arc in data.Arcs )
+                states[arc.FromState].Transitions.Add(arc);
         }
 
         public void AddArcToModel(string input, string output, int currentState, int nextState)
         {
-            TransitionData d = new TransitionData(input, output, nextState);
+            TransitionData d = new TransitionData(input, output, currentState, nextState);
             states[currentState].Transitions.Add(d);
 
         }
 
         public void SwitchBetweenInputAndOutput()
         {
-            for (int i = 0; i < MaxStates; ++i)
+            for (int i = 0; i < NumOfStates; ++i)
             {
                 foreach (TransitionData d in states[i].Transitions)
                 {
@@ -231,12 +244,12 @@ namespace FiniteStateTransducer
 
             //crteate a new output sequence
             if (s.OutputSequence != null)
-                output = String.Copy(s.OutputSequence);
+                output = s.OutputSequence;
 
             //write the output symbol on the arc to the outputsequence.
             if (d.Output != null)
             {
-                ;
+                
                 string outputSymbol = d.Output;
 
                 //if output symbol is ? (wildcard), then copy the actual input from the input sequence.
@@ -247,7 +260,7 @@ namespace FiniteStateTransducer
              }
             //create a new search state and add it to the list.
             //the new search state has the next index in the input sequence
-            return new SearchState(d.NextState, nextInputIndex, output);
+            return new SearchState(d.ToState, nextInputIndex, output);
 
         }
     }

@@ -11,9 +11,10 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-
+            
             Lexicon.Lexicon a = new Lexicon.Lexicon();
-            //tatata
         }
+
+
     }
 }
