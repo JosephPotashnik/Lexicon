@@ -29,10 +29,30 @@ namespace Lexicon
        public Feature[] Features { get; set; }
 
    }
-    
-   //values of a given feature vector. e.g. [person1, singular, feminine, past ... ]
-   /*class FeatureVec
+
+   public class FeatureDictionary
    {
-       public string[] Features { get; set; }
-   }*/
+       public Dictionary<string, int> Dictionary { get; set; }
+       public int NumOfFeatures { get; set; }
+
+       public FeatureDictionary(FeatureDefinitions defs)
+       {
+           NumOfFeatures = defs.FeatureNamesVector.FeatureNames.Count();
+           Dictionary = new Dictionary<string, int>();
+           foreach (Feature f in defs.Features)
+           {
+               foreach (string s in f.Values)
+               {
+                   for (int k = 0; k < NumOfFeatures; ++k)
+                   {
+                       if (f.Name == defs.FeatureNamesVector.FeatureNames[k])
+                       {
+                           Dictionary.Add(s, k);
+                           break;
+                       }
+                   }
+               }
+           }
+       }
+   }
 }

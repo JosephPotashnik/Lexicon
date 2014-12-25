@@ -37,26 +37,20 @@ namespace FiniteStateTransducer
         //list of arcs
         public List<TransitionData> Arcs { get; set; }
 
-        public FSTData()
-        {
+        public FSTData()        {}
 
-        }
     }
     public class FST
     {
+        public const string WildcardSymbol = "?";
 
         public int NumOfStates { get; set; }
         public string Description { get; set; }
         
         class MachineState
         {
-            bool acceptingState = false;
+            public bool AcceptingState { get; set; }
 
-            public bool AcceptingState
-            {
-                get { return acceptingState; }
-                set { acceptingState = value; }
-            }
             List<TransitionData> transitions = new List<TransitionData>();
 
             public List<TransitionData> Transitions
@@ -68,38 +62,16 @@ namespace FiniteStateTransducer
 
         class SearchState
         {
-            int machineState;
-
-            public int MachineState
-            {
-                get { return machineState; }
-                set { machineState = value; }
-            }
-
-            int inputIndex;
-
-            public int InputIndex
-            {
-                get { return inputIndex; }
-                set { inputIndex = value; }
-            }
-
-            string outputSequence;
-
-            public string OutputSequence
-            {
-                get { return outputSequence; }
-                set { outputSequence = value; }
-            }
+            public int MachineState { get; set; }
+            public int InputIndex { get; set; }
+            public string OutputSequence { get; set; }
 
             public SearchState(int _machineState, int _inputIndex, string _output)
             {
-                machineState = _machineState;
-                inputIndex = _inputIndex;
-                outputSequence = _output;
-
+                MachineState = _machineState;
+                InputIndex = _inputIndex;
+                OutputSequence = _output;
             }
-
         }
 
 
@@ -159,7 +131,6 @@ namespace FiniteStateTransducer
             SearchState currentSearchState = new SearchState(0, 0, null);
             agenda.Add(currentSearchState);
 
-
             while (agenda.Count != 0)
             {
                 if (IsAcceptState(currentSearchState) == true)
@@ -178,8 +149,6 @@ namespace FiniteStateTransducer
             }
 
             return answers;
-            
-
         }
 
         //Using BFS - breadth search first, remove the current search state and get the first one in line.
@@ -192,7 +161,6 @@ namespace FiniteStateTransducer
                 s =  agenda[0];
 
             return s;
-        
         }
 
         bool IsAcceptState(SearchState s)
@@ -224,7 +192,7 @@ namespace FiniteStateTransducer
                    {
                        //if the symbol on the input string equals the input symbol on an arc leading out of the current state, 
                        //or the transition accepts any character (i.e. '?' wildcard)
-                       if (d.Input == inputSequence[s.InputIndex].ToString() || d.Input.Equals("?"))
+                       if (d.Input == inputSequence[s.InputIndex].ToString() || d.Input.Equals(WildcardSymbol))
                        {
                            //advance the input sequence and move to next search state.
                            SearchState nextSearchState = CreateNextSearchState(s, d, s.InputIndex + 1, s.InputIndex);
@@ -253,7 +221,7 @@ namespace FiniteStateTransducer
                 string outputSymbol = d.Output;
 
                 //if output symbol is ? (wildcard), then copy the actual input from the input sequence.
-                if (outputSymbol.Equals("?"))
+                if (outputSymbol.Equals(WildcardSymbol))
                     outputSymbol = inputSequence.ElementAt(currentInputIndex).ToString();
 
                 output+= outputSymbol;
